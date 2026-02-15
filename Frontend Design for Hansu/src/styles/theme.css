@@ -1,0 +1,83 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Hansu Mandatory Tokens */
+  --hansu-primary: #1570EF;
+  --hansu-primary-hover: #175CD3;
+  --hansu-secondary: #2E90FA;
+  --hansu-bg: #EEF2F7;
+  --hansu-text: #1F2937;
+  --hansu-neutral-dark: #344054;
+  --hansu-sidebar-start: #101828;
+  --hansu-sidebar-end: #0B1730;
+  --hansu-success: #067647;
+  --hansu-error: #B42318;
+
+  /* UI System Variables */
+  --font-size: 16px;
+  --background: var(--hansu-bg);
+  --foreground: var(--hansu-text);
+  --card: #ffffff;
+  --card-foreground: var(--hansu-text);
+  --popover: #ffffff;
+  --popover-foreground: var(--hansu-text);
+  --primary: var(--hansu-primary);
+  --primary-foreground: #ffffff;
+  --secondary: var(--hansu-secondary);
+  --secondary-foreground: #ffffff;
+  --muted: #F2F4F7;
+  --muted-foreground: #667085;
+  --accent: #F9FAFB;
+  --accent-foreground: var(--hansu-primary);
+  --destructive: var(--hansu-error);
+  --destructive-foreground: #ffffff;
+  --border: #D0D5DD;
+  --input: #D0D5DD;
+  --radius: 8px;
+  
+  --sidebar-width: 280px;
+}
+
+.dark {
+  --background: #0B1730;
+  --foreground: #F9FAFB;
+  --card: #101828;
+  --card-foreground: #F9FAFB;
+  --popover: #101828;
+  --popover-foreground: #F9FAFB;
+  --primary: var(--hansu-primary);
+  --primary-foreground: #ffffff;
+  --muted: #1D2939;
+  --muted-foreground: #98A2B3;
+  --border: #344054;
+}
+
+@theme inline {
+  --color-hansu-primary: var(--hansu-primary);
+  --color-hansu-primary-hover: var(--hansu-primary-hover);
+  --color-hansu-secondary: var(--hansu-secondary);
+  --color-hansu-bg: var(--hansu-bg);
+  --color-hansu-text: var(--hansu-text);
+  --color-hansu-neutral-dark: var(--hansu-neutral-dark);
+  --color-hansu-success: var(--hansu-success);
+  --color-hansu-error: var(--hansu-error);
+  --color-hansu-sidebar-start: var(--hansu-sidebar-start);
+  --color-hansu-sidebar-end: var(--hansu-sidebar-end);
+  
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border: var(--border);
+  --radius-lg: var(--radius);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
