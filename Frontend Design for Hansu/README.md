@@ -27,8 +27,16 @@ Na raiz do repositório, você pode iniciar backend + frontend juntos:
 ./start_hub.sh
 ```
 
-Se já tiver dependências instaladas:
+Se já tiver dependências instaladas (backend em `.venv` e frontend com `node_modules`):
 
 ```bash
 ./start_hub.sh --no-install
 ```
+
+> Dica: na primeira execução use `./start_hub.sh` sem `--no-install`.
+
+
+## Troubleshooting rápido
+
+- Erro de rede/proxy ao instalar pacotes: execute em uma rede com acesso ao PyPI/NPM.
+- Se quiser pular instalação, rode primeiro uma vez sem `--no-install` para preparar o ambiente e depois use `--no-install`.

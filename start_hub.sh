@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$ROOT_DIR/Hub_Painel/HUB"
 FRONTEND_DIR="$ROOT_DIR/Frontend Design for Hansu"
+VENV_DIR="$BACKEND_DIR/.venv"
 API_PORT="${API_PORT:-8000}"
 WEB_PORT="${WEB_PORT:-5173}"
 API_BASE_URL="${VITE_API_BASE_URL:-http://localhost:${API_PORT}/api}"
@@ -52,24 +53,44 @@ if [[ ! -d "$BACKEND_DIR" || ! -d "$FRONTEND_DIR" ]]; then
   exit 1
 fi
 
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "❌ python3 not found in PATH."
+  exit 1
+fi
+
 if ! command -v npm >/dev/null 2>&1; then
   echo "❌ npm not found in PATH."
   exit 1
 fi
 
-if [[ "$INSTALL_DEPS" -eq 0 ]] && ! command -v uvicorn >/dev/null 2>&1; then
-  echo "❌ uvicorn not found in PATH. Install dependencies first or run without --no-install."
-  exit 1
+if [[ ! -d "$VENV_DIR" ]]; then
+  echo "🐍 Creating backend virtualenv at $VENV_DIR"
+  python3 -m venv "$VENV_DIR"
 fi
 
+PYTHON_BIN="$VENV_DIR/bin/python"
+PIP_BIN="$VENV_DIR/bin/pip"
+
 if [[ "$INSTALL_DEPS" -eq 1 ]]; then
-  echo "📦 Installing backend dependencies..."
-  python3 -m pip install -r "$BACKEND_DIR/requirements.txt"
+  echo "📦 Installing backend dependencies in virtualenv..."
+  "$PIP_BIN" install -r "$BACKEND_DIR/requirements.txt"
 
   echo "📦 Installing frontend dependencies..."
   (cd "$FRONTEND_DIR" && npm install)
 else
   echo "⏭️  Skipping dependency installation (--no-install)."
+
+  if ! "$PYTHON_BIN" -m uvicorn --version >/dev/null 2>&1; then
+    echo "❌ uvicorn not found in backend virtualenv."
+    echo "   Run once without --no-install: ./start_hub.sh"
+    exit 1
+  fi
+
+  if [[ ! -d "$FRONTEND_DIR/node_modules" ]]; then
+    echo "❌ node_modules not found in frontend folder."
+    echo "   Run once without --no-install: ./start_hub.sh"
+    exit 1
+  fi
 fi
 
 BACKEND_PID=""
@@ -91,7 +112,7 @@ trap cleanup EXIT INT TERM
 echo "🚀 Starting backend on port $API_PORT..."
 (
   cd "$BACKEND_DIR"
-  uvicorn backend.api:app --host 0.0.0.0 --port "$API_PORT" --reload
+  "$PYTHON_BIN" -m uvicorn backend.api:app --host 0.0.0.0 --port "$API_PORT" --reload
 ) &
 BACKEND_PID=$!
 
