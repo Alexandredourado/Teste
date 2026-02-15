@@ -40,6 +40,26 @@ export const ModulePage = ({ area, modules }: ModulePageProps) => {
     setView('result');
   };
 
+  const simulateProcessing = () => {
+    setIsProcessing(true);
+    setProgress(0);
+
+    const timer = window.setInterval(() => {
+      setProgress((previous) => {
+        const next = previous + 20;
+        if (next >= 100) {
+          window.clearInterval(timer);
+          setIsProcessing(false);
+          setView('result');
+          toast.success('Processamento concluído com sucesso!');
+          return 100;
+        }
+
+        return next;
+      });
+    }, 400);
+  };
+
   if (view === 'execution' && modules.find(m => m.id === activeModule)?.type === 'edit') {
     return (
       <div className="max-w-3xl mx-auto py-12">
