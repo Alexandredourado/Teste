@@ -11,7 +11,7 @@ API_BASE_URL="${VITE_API_BASE_URL:-http://localhost:${API_PORT}/api}"
 INSTALL_DEPS=1
 
 usage() {
-  cat <<'EOF'
+  cat <<'EOF_USAGE'
 Hansu Hub launcher (backend + frontend)
 
 Usage:
@@ -25,7 +25,41 @@ Environment variables:
   API_PORT             Backend port (default: 8000)
   WEB_PORT             Frontend port (default: 5173)
   VITE_API_BASE_URL    Frontend API base URL (default: http://localhost:$API_PORT/api)
-EOF
+EOF_USAGE
+}
+
+resolve_python_command() {
+  if command -v python3 >/dev/null 2>&1; then
+    command -v python3
+    return
+  fi
+
+  if command -v python >/dev/null 2>&1; then
+    command -v python
+    return
+  fi
+
+  echo ""
+}
+
+resolve_venv_python() {
+  local venv_dir="$1"
+  local candidates=(
+    "$venv_dir/bin/python"
+    "$venv_dir/bin/python3"
+    "$venv_dir/Scripts/python.exe"
+    "$venv_dir/Scripts/python"
+  )
+
+  local candidate
+  for candidate in "${candidates[@]}"; do
+    if [[ -x "$candidate" ]]; then
+      echo "$candidate"
+      return
+    fi
+  done
+
+  echo ""
 }
 
 for arg in "$@"; do
@@ -53,8 +87,9 @@ if [[ ! -d "$BACKEND_DIR" || ! -d "$FRONTEND_DIR" ]]; then
   exit 1
 fi
 
-if ! command -v python3 >/dev/null 2>&1; then
-  echo "❌ python3 not found in PATH."
+SYSTEM_PYTHON="$(resolve_python_command)"
+if [[ -z "$SYSTEM_PYTHON" ]]; then
+  echo "❌ Neither python3 nor python was found in PATH."
   exit 1
 fi
 
@@ -65,15 +100,18 @@ fi
 
 if [[ ! -d "$VENV_DIR" ]]; then
   echo "🐍 Creating backend virtualenv at $VENV_DIR"
-  python3 -m venv "$VENV_DIR"
+  "$SYSTEM_PYTHON" -m venv "$VENV_DIR"
 fi
 
-PYTHON_BIN="$VENV_DIR/bin/python"
-PIP_BIN="$VENV_DIR/bin/pip"
+PYTHON_BIN="$(resolve_venv_python "$VENV_DIR")"
+if [[ -z "$PYTHON_BIN" ]]; then
+  echo "❌ Could not find Python executable inside virtualenv: $VENV_DIR"
+  exit 1
+fi
 
 if [[ "$INSTALL_DEPS" -eq 1 ]]; then
   echo "📦 Installing backend dependencies in virtualenv..."
-  "$PIP_BIN" install -r "$BACKEND_DIR/requirements.txt"
+  "$PYTHON_BIN" -m pip install -r "$BACKEND_DIR/requirements.txt"
 
   echo "📦 Installing frontend dependencies..."
   (cd "$FRONTEND_DIR" && npm install)
