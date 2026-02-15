@@ -8,4 +8,35 @@
   Run `npm i` to install the dependencies.
 
   Run `npm run dev` to start the development server.
-  
+
+## Integração com backend (Hub_Painel)
+
+- O frontend agora consome os endpoints HTTP em `VITE_API_BASE_URL` (padrão: `http://localhost:8000/api`).
+- Para subir a API do backend: 
+  1. `cd Hub_Painel/HUB`
+  2. `pip install -r requirements.txt`
+  3. `uvicorn backend.api:app --reload --host 0.0.0.0 --port 8000`
+- Para subir o frontend com o endpoint customizado:
+  - `VITE_API_BASE_URL=http://localhost:8000/api npm run dev`
+
+## Subir tudo com um comando (Hub)
+
+Na raiz do repositório, você pode iniciar backend + frontend juntos:
+
+```bash
+./start_hub.sh
+```
+
+Se já tiver dependências instaladas (backend em `.venv` e frontend com `node_modules`):
+
+```bash
+./start_hub.sh --no-install
+```
+
+> Dica: na primeira execução use `./start_hub.sh` sem `--no-install`.
+
+
+## Troubleshooting rápido
+
+- Erro de rede/proxy ao instalar pacotes: execute em uma rede com acesso ao PyPI/NPM.
+- Se quiser pular instalação, rode primeiro uma vez sem `--no-install` para preparar o ambiente e depois use `--no-install`.

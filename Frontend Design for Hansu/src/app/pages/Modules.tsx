@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Upload, FileText, Download, CheckCircle2, AlertCircle, FileSpreadsheet, Search, Plus, Filter, Lock } from "lucide-react";
 import { DataTable, ProcessingProgress, StatusBadge } from "../components/UI";
+import type { ApiLicense } from "../services/api";
 import { toast } from "sonner";
 
 interface ModulePageProps {
@@ -37,6 +38,26 @@ export const ModulePage = ({ area, modules }: ModulePageProps) => {
   const handleEditConfirm = () => {
     toast.success("Registro atualizado com sucesso!");
     setView('result');
+  };
+
+  const simulateProcessing = () => {
+    setIsProcessing(true);
+    setProgress(0);
+
+    const timer = window.setInterval(() => {
+      setProgress((previous) => {
+        const next = previous + 20;
+        if (next >= 100) {
+          window.clearInterval(timer);
+          setIsProcessing(false);
+          setView('result');
+          toast.success('Processamento concluído com sucesso!');
+          return 100;
+        }
+
+        return next;
+      });
+    }, 400);
   };
 
   if (view === 'execution' && modules.find(m => m.id === activeModule)?.type === 'edit') {
@@ -212,15 +233,9 @@ export const ModulePage = ({ area, modules }: ModulePageProps) => {
 };
 
 // Admin Page Component
-export const AdminPage = () => {
+export const AdminPage = ({ licenses }: { licenses: ApiLicense[] }) => {
   const [tab, setTab] = useState<'licencas' | 'permissoes'>('licencas');
-
-  const licenses = [
-    { id: 'LIC-001', cliente: 'Contabilidade Silva', modulo: 'Hansu Hub', status: 'Ativa', expira: '15/05/2026' },
-    { id: 'LIC-002', cliente: 'Empresa XPTO', modulo: 'Full Access', status: 'Ativa', expira: '20/12/2026' },
-    { id: 'LIC-003', cliente: 'Escritório Digital', modulo: 'Ecac + EFD', status: 'Expirando', expira: '28/02/2026' },
-    { id: 'LIC-004', cliente: 'Logística S.A', modulo: 'Ecac', status: 'Suspensa', expira: 'Expired' },
-  ];
+  const tableData = licenses.length ? licenses : [{ id: 'N/A', cliente: 'Sem dados do backend', modulo: '—', status: 'Suspensa', expira: '—' }];
 
   const columns = [
     { key: 'id', label: 'ID Licença' },
@@ -269,7 +284,7 @@ export const AdminPage = () => {
         <DataTable 
           title="Licenças Ativas no Sistema" 
           columns={columns} 
-          data={licenses} 
+          data={tableData} 
           onExport={() => toast.success("Exportando relatório de licenças...")} 
         />
       ) : (
