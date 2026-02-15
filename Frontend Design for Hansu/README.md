@@ -19,3 +19,16 @@
 - Para subir o frontend com o endpoint customizado:
   - `VITE_API_BASE_URL=http://localhost:8000/api npm run dev`
 
+## Subir tudo com um comando (Hub)
+
+Na raiz do repositório, você pode iniciar backend + frontend juntos:
+
+```bash
+./start_hub.sh
+```
+
+Se já tiver dependências instaladas:
+
+```bash
+./start_hub.sh --no-install
+```
