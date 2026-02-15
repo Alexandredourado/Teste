@@ -1,11 +1,12 @@
-import React, { useState } from "react";
-import { Toaster } from "sonner";
+import React, { useEffect, useState } from "react";
+import { Toaster, toast } from "sonner";
 import { Sidebar, Header, Page } from "./components/Layout";
 import { Hub } from "./pages/Hub";
 import { ModulePage, AdminPage } from "./pages/Modules";
 import { Activation } from "./pages/Activation";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { fetchAreasModules, fetchLicenses, type ApiLicense, type ApiModule } from "./services/api";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -16,23 +17,45 @@ export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isActivated, setIsActivated] = useState(false);
 
-  // Define module structures for different areas
-  const ecacModules = [
-    { id: 'darf', title: 'Extrair Darf', description: 'Upload de PDF para processamento e exportação para Excel.', action: 'Iniciar Extração', type: 'upload' as const },
-    { id: 'dctf', title: 'Extrair DCTFWeb', description: 'Extração de Débitos, Créditos e Compensações via leitura de PDF.', action: 'Iniciar Extração', type: 'upload' as const },
-    { id: 'pgdas', title: 'PGDAS Simples Nacional', description: 'Leitura por atividade/segregação e débitos apurados.', action: 'Iniciar Extração', type: 'upload' as const },
+  const fallbackEcacModules: ApiModule[] = [
+    { id: 'darf', title: 'Extrair Darf', description: 'Upload de PDF para processamento e exportação para Excel.', action: 'Iniciar Extração', type: 'upload' },
+    { id: 'dctf', title: 'Extrair DCTFWeb', description: 'Extração de Débitos, Créditos e Compensações via leitura de PDF.', action: 'Iniciar Extração', type: 'upload' },
+    { id: 'pgdas', title: 'PGDAS Simples Nacional', description: 'Leitura por atividade/segregação e débitos apurados.', action: 'Iniciar Extração', type: 'upload' },
   ];
 
-  const efdContribModules = [
-    { id: 'm200', title: 'Extrator M200/M600', description: 'Seleção de arquivo SPED, visualização de registros e validações.', action: 'Selecionar SPED', type: 'upload' as const },
-    { id: 'editor-cnpj', title: 'Editor CNPJ', description: 'Busca de arquivo e edição assistida do registro |0000|.', action: 'Abrir Editor', type: 'edit' as const },
+  const fallbackEfdContribModules: ApiModule[] = [
+    { id: 'm200', title: 'Extrator M200/M600', description: 'Seleção de arquivo SPED, visualização de registros e validações.', action: 'Selecionar SPED', type: 'upload' },
+    { id: 'editor-cnpj', title: 'Editor CNPJ', description: 'Busca de arquivo e edição assistida do registro |0000|.', action: 'Abrir Editor', type: 'edit' },
   ];
 
-  const efdIcmsModules = [
-    { id: 'e110', title: 'Extrator E110/E115', description: 'Leitura dos registros SPED e exportação tabular.', action: 'Selecionar SPED', type: 'upload' as const },
-    { id: 'editor-cnpj-ie', title: 'Editor CNPJ/IE', description: 'Atualização de CNPJ e IE no registro |0000| com validação.', action: 'Abrir Editor', type: 'edit' as const },
-    { id: 'h005', title: 'Extrator Inventário H005', description: 'Extração de inventário H005 e consolidação Excel.', action: 'Selecionar SPED', type: 'upload' as const },
+  const fallbackEfdIcmsModules: ApiModule[] = [
+    { id: 'e110', title: 'Extrator E110/E115', description: 'Leitura dos registros SPED e exportação tabular.', action: 'Selecionar SPED', type: 'upload' },
+    { id: 'editor-cnpj-ie', title: 'Editor CNPJ/IE', description: 'Atualização de CNPJ e IE no registro |0000| com validação.', action: 'Abrir Editor', type: 'edit' },
+    { id: 'h005', title: 'Extrator Inventário H005', description: 'Extração de inventário H005 e consolidação Excel.', action: 'Selecionar SPED', type: 'upload' },
   ];
+
+  const [ecacModules, setEcacModules] = useState<ApiModule[]>(fallbackEcacModules);
+  const [efdContribModules, setEfdContribModules] = useState<ApiModule[]>(fallbackEfdContribModules);
+  const [efdIcmsModules, setEfdIcmsModules] = useState<ApiModule[]>(fallbackEfdIcmsModules);
+  const [licenses, setLicenses] = useState<ApiLicense[]>([]);
+
+  useEffect(() => {
+    fetchAreasModules()
+      .then((areas) => {
+        if (areas.ecac?.length) setEcacModules(areas.ecac);
+        if (areas.efd_contribuicoes?.length) setEfdContribModules(areas.efd_contribuicoes);
+        if (areas.efd_icms?.length) setEfdIcmsModules(areas.efd_icms);
+      })
+      .catch(() => {
+        toast.warning('Não foi possível carregar módulos do backend. Usando configuração local.');
+      });
+
+    fetchLicenses()
+      .then(setLicenses)
+      .catch(() => {
+        toast.warning('Não foi possível carregar licenças do backend no momento.');
+      });
+  }, []);
 
   const renderContent = () => {
     switch (currentPage) {
@@ -45,7 +68,7 @@ export default function App() {
       case 'efd-icms':
         return <ModulePage area="EFD ICMS" modules={efdIcmsModules} />;
       case 'admin':
-        return <AdminPage />;
+        return <AdminPage licenses={licenses} />;
       case 'settings':
         return (
           <div className="bg-white dark:bg-slate-800 p-8 rounded-xl border border-hansu-border dark:border-white/10 max-w-2xl">
