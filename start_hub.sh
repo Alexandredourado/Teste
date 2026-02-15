@@ -42,6 +42,21 @@ resolve_python_command() {
   echo ""
 }
 
+
+resolve_npm_command() {
+  if command -v npm >/dev/null 2>&1; then
+    command -v npm
+    return
+  fi
+
+  if command -v npm.cmd >/dev/null 2>&1; then
+    command -v npm.cmd
+    return
+  fi
+
+  echo ""
+}
+
 resolve_venv_python() {
   local venv_dir="$1"
   local candidates=(
@@ -93,8 +108,10 @@ if [[ -z "$SYSTEM_PYTHON" ]]; then
   exit 1
 fi
 
-if ! command -v npm >/dev/null 2>&1; then
-  echo "❌ npm not found in PATH."
+NPM_BIN="$(resolve_npm_command)"
+if [[ -z "$NPM_BIN" ]]; then
+  echo "❌ Neither npm nor npm.cmd was found in PATH."
+  echo "   Install Node.js (which includes npm), then try again."
   exit 1
 fi
 
@@ -114,7 +131,7 @@ if [[ "$INSTALL_DEPS" -eq 1 ]]; then
   "$PYTHON_BIN" -m pip install -r "$BACKEND_DIR/requirements.txt"
 
   echo "📦 Installing frontend dependencies..."
-  (cd "$FRONTEND_DIR" && npm install)
+  (cd "$FRONTEND_DIR" && "$NPM_BIN" install)
 else
   echo "⏭️  Skipping dependency installation (--no-install)."
 
@@ -164,7 +181,7 @@ fi
 echo "🚀 Starting frontend on port $WEB_PORT..."
 (
   cd "$FRONTEND_DIR"
-  VITE_API_BASE_URL="$API_BASE_URL" npm run dev -- --host 0.0.0.0 --port "$WEB_PORT"
+  VITE_API_BASE_URL="$API_BASE_URL" "$NPM_BIN" run dev -- --host 0.0.0.0 --port "$WEB_PORT"
 ) &
 FRONTEND_PID=$!
 
