@@ -11,7 +11,7 @@ function cn(...inputs: ClassValue[]) {
 // Module Card for Hub
 export const ModuleCard = ({ title, description, icon: Icon, onClick, count }: any) => (
   <motion.div 
-    whileHover={{ y: -4, shadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
+    whileHover={{ y: -4, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
     onClick={onClick}
     className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-hansu-border dark:border-white/10 cursor-pointer transition-all group"
   >
